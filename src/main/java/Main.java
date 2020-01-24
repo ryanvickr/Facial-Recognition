@@ -26,20 +26,22 @@ public class Main {
         AmazonRekognition rekognitionClient = AmazonRekognitionClientBuilder.defaultClient();
 
         //Load source and target images and create input parameters
-        try (InputStream inputStream = new FileInputStream(new File(sourceImage))) {
+        try (InputStream inputStream = Main.class.getResourceAsStream("source.jpg")) {
             sourceImageBytes = ByteBuffer.wrap(IOUtils.toByteArray(inputStream));
         }
         catch(Exception e)
         {
             System.out.println("Failed to load source image " + sourceImage);
+            System.err.println(e.getMessage());
             System.exit(1);
         }
-        try (InputStream inputStream = new FileInputStream(new File(targetImage))) {
+        try (InputStream inputStream = Main.class.getResourceAsStream("target.jpg")) {
             targetImageBytes = ByteBuffer.wrap(IOUtils.toByteArray(inputStream));
         }
         catch(Exception e)
         {
             System.out.println("Failed to load target images: " + targetImage);
+            System.err.println(e.getMessage());
             System.exit(1);
         }
 
