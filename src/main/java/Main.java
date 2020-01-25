@@ -1,78 +1,23 @@
 // LIMA Group
-import com.amazonaws.services.rekognition.AmazonRekognition;
-import com.amazonaws.services.rekognition.AmazonRekognitionClientBuilder;
-import com.amazonaws.services.rekognition.model.Image;
-import com.amazonaws.services.rekognition.model.BoundingBox;
 import com.amazonaws.services.rekognition.model.CompareFacesMatch;
-import com.amazonaws.services.rekognition.model.CompareFacesRequest;
-import com.amazonaws.services.rekognition.model.CompareFacesResult;
-import com.amazonaws.services.rekognition.model.ComparedFace;
-import java.util.List;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.InputStream;
-import java.nio.ByteBuffer;
-import com.amazonaws.util.IOUtils;
+import java.io.Console;
 
 public class Main {
 
     public static void main(String[] args) {
-        Float similarityThreshold = 70F;
-        String sourceImage = "source.jpg";
-        String targetImage = "target.jpg";
-        ByteBuffer sourceImageBytes=null;
-        ByteBuffer targetImageBytes=null;
 
-        AmazonRekognition rekognitionClient = AmazonRekognitionClientBuilder.defaultClient();
+        Console console = System.console();
 
-        //Load source and target images and create input parameters
-        try (InputStream inputStream = Main.class.getResourceAsStream("source.jpg")) {
-            sourceImageBytes = ByteBuffer.wrap(IOUtils.toByteArray(inputStream));
+        String user = console.readLine("Enter user: ");
+        CompareFacesMatch match = MakeComparison.login(user.trim());
+
+        if (match == null) {
+            System.out.println("No match found.");
         }
-        catch(Exception e)
-        {
-            System.out.println("Failed to load source image " + sourceImage);
-            System.err.println(e.getMessage());
-            System.exit(1);
+        else {
+            System.out.println("Face matches with "
+                + match.getSimilarity().toString()
+                + "% confidence.");
         }
-        try (InputStream inputStream = Main.class.getResourceAsStream("target.jpg")) {
-            targetImageBytes = ByteBuffer.wrap(IOUtils.toByteArray(inputStream));
-        }
-        catch(Exception e)
-        {
-            System.out.println("Failed to load target images: " + targetImage);
-            System.err.println(e.getMessage());
-            System.exit(1);
-        }
-
-        Image source=new Image()
-                .withBytes(sourceImageBytes);
-        Image target=new Image()
-                .withBytes(targetImageBytes);
-
-        CompareFacesRequest request = new CompareFacesRequest()
-                .withSourceImage(source)
-                .withTargetImage(target)
-                .withSimilarityThreshold(similarityThreshold);
-
-        // Call operation
-        CompareFacesResult compareFacesResult=rekognitionClient.compareFaces(request);
-
-
-        // Display results
-        List <CompareFacesMatch> faceDetails = compareFacesResult.getFaceMatches();
-        for (CompareFacesMatch match: faceDetails){
-            ComparedFace face= match.getFace();
-            BoundingBox position = face.getBoundingBox();
-            System.out.println("Face at " + position.getLeft().toString()
-                    + " " + position.getTop()
-                    + " matches with " + match.getSimilarity().toString()
-                    + "% confidence.");
-
-        }
-        List<ComparedFace> uncompared = compareFacesResult.getUnmatchedFaces();
-
-        System.out.println("There was " + uncompared.size()
-                + " face(s) that did not match");
     }
 }
